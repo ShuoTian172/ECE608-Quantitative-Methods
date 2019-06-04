@@ -1,0 +1,327 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+```{r}
+library(gapminder)
+library(tidyverse)
+library(car)
+library(dplyr)
+library(e1071)
+
+```
+1. Assess normality of Life Expectancy in the Americas in the year 2007. Include all
+appropriate plots and outcomes, and explain your decision of whether it is normal or
+not. [3 marks]
+
+```{r}
+# Loading data and subsetting
+df <- gapminder %>%
+  filter (year == 2007)
+df1<-df$lifeExp
+length(df1)
+dfg1 <- data.frame(value=df1,
+                   ID=seq(1,142,by=1))
+
+```
+
+
+
+
+Plot the histogram 
+```{r}
+ggplot(dat=dfg1, aes(x=value))+
+  geom_histogram(binwidth=0.1, alpha=0.5, position="identity")
+
+```
+
+Check normality using qq plot
+```{r}
+qqnorm(df1)
+```
+
+Check skewness
+```{r}
+print(skewness(df1))
+```
+
+
+```{r}
+shapiro.test(x = df1)
+```
+
+```{r}
+ks.test(x = df1,
+        y = "pnorm",
+        mean = mean(df1),
+        sd = sd(df1))
+```
+
+From the result of q-q plot, Shapiro-Wilk normality test, and One-sample Kolmogorov-Smirnov test. The normality of this dataset is confirmed.
+
+
+2. Are there ‘population’ outliers when comparing Asian countries to European countries
+in 1952? What are the different options to handle outliers, and what do you think is the
+best option to handle outliers when making this comparison? [3 marks]
+
+```{r}
+df <- gapminder %>%
+  filter (year == 1952 & (continent == "Asia" | continent == "Europe") )
+
+library(ggplot2)
+ggplot(df , aes(x=continent, y=pop)) +
+  geom_boxplot()
+```
+This plot shows that the outlier exist in both group. The optins to deal with outliers:
+1. Remove them: This should ONLY be used when you are sure the data point is not a measured value
+• E.g., Heart rate data above 250 bpm; not plausible
+2. Transform the data
+• E.g., log/power/inverse
+3. Change the score: This may seem like cheating, but if your data point is going to bias your data anyways, this is better than leaving it in
+• E.g., The next highest score + 1
+• E.g., Change it to 3SD above the mean; make it physiological
+4. Use non-parametrics
+
+For this case, transform the data will be an good choice.
+
+
+
+
+For the following questions, if your data breaks assumptions, you must attempt to
+correct it using a data transformation. If no normality transformations help, proceed as if the assumptions are intact and state this in your response.
+
+2. Life Expectancy: Conduct the appropriate statistical test, demonstrate the underlying
+assumptions, plot the results, and briefly report the results in a ‘publishable’ format, to answer a research question of your choice phrased in the following format: [5 marks]
+
+Is life expectancy greater in [continent] compared to [continent] in [year]?
+```{r}
+# Subsetting
+df <- gapminder %>%
+  filter (year == 2007 & (continent == "Asia" | continent == "Europe") )
+
+dfa <- gapminder %>%
+  filter (year == 2007 & continent == "Asia")
+
+dfe <- gapminder %>%
+  filter (year == 2007 & continent == "Europe")
+
+
+library(ggplot2)
+ggplot(df , aes(x=continent, y=lifeExp)) +
+  geom_boxplot()
+
+```
+
+```{r}
+# Visualize the subset distribution by Histogram Plot 
+
+ggplot(df, aes(x=lifeExp, fill=continent)) +
+  geom_histogram(binwidth=0.1, alpha=0.5, position="identity")
+```
+
+
+
+
+```{r}
+
+# visualizing normality by q-q plot of the subset life expectancy in Asia at 2007
+qqnorm(dfa$lifeExp)
+
+```
+
+```{r}
+# Check the skewness of the subset life expectancy in Asia at 2007
+print(skewness(dfa$lifeExp))
+
+```
+
+```{r}
+# Shapiro-Wilk normality test of the subset life expectancy in Asia at 2007
+shapiro.test(x = dfa$lifeExp)
+
+```
+
+```{r}
+# One-sample Kolmogorov-Smirnov test of the subset life expectancy in Asia at 2007
+
+ks.test(x = dfa$lifeExp,
+        y = "pnorm",
+        mean = mean(dfa$lifeExp),
+        sd = sd(dfa$lifeExp))
+```
+
+
+```{r}
+# visualizing normality by q-q plot of the subset life expectancy in Europe at 2007
+qqnorm(dfe$lifeExp)
+```
+
+
+```{r}
+# Check the skewness of the subset life expectancy in Europe at 2007
+print(skewness(dfe$lifeExp))
+```
+
+```{r}
+# Shapiro-Wilk normality test of the subset life expectancy in Europe at 2007
+shapiro.test(x = dfe$lifeExp)
+```
+```{r}
+# One-sample Kolmogorov-Smirnov test of the subset life expectancy in Europe at 2007
+
+ks.test(x = dfe$lifeExp,
+        y = "pnorm",
+        mean = mean(dfe$lifeExp),
+        sd = sd(dfe$lifeExp))
+```
+
+
+Shapiro-Wilk normality test results show that both the dataset of 
+life expectancy in Europe and Asia in 2007 are non-normal. So the 
+data will be log-transformed.
+```{r}
+# Fix the outcome with a log transform 
+dft <- df %>% 
+  mutate(value_log = log(lifeExp))
+dfat <- dft %>%
+  filter (year == 2007 & continent == "Asia")
+dfet <- dft %>%
+  filter (year == 2007 & continent == "Europe")
+
+```
+
+Run normality check again on the subset life expectancy in Asia at 2007
+```{r}
+qqnorm(dfat$value_log)
+print(skewness(dfat$value_log))
+shapiro.test(x = dfat$value_log)
+ks.test(x = dfat$value_log,
+        y = "pnorm",
+        mean = mean(dfat$value_log),
+        sd = sd(dfat$value_log))
+```
+
+Run normality again on the subset life expectancy in Europe at 2007
+```{r}
+qqnorm(dfet$value_log)
+print(skewness(dfet$value_log))
+shapiro.test(x = dfet$value_log)
+ks.test(x = dfet$value_log,
+        y = "pnorm",
+        mean = mean(dfet$value_log),
+        sd = sd(dfet$value_log))
+```
+
+After log-transform the subsets, neither subset is normal.
+
+
+```{r}
+#Check homogeneity of variance using Levene's Test
+leveneTest(lifeExp~continent, data = dft, center = mean)
+
+```
+
+```{r}
+ggplot(dat = dft, aes(x = continent, y = lifeExp))+
+  geom_violin()+
+  geom_point()
+```
+
+
+```{r}
+# Independent T-test 
+t.test(x = dfat$value_log,
+       y = dfet$value_log,
+       alternative = "two.sided",
+       var.equal = FALSE,
+       paired = FALSE)
+```
+An independent t-test will be used to analyze differences between
+conditions. The Kolmogorov-Smirnov test will be used to test for normality, and
+Levene’s test for homogeneity of variance. If data is found to be non-normal, data
+will be log-transformed. Significance will be set at α < 0.05.
+
+Subject characteristics are presented as above. Life expectancy in Europe at 2007 (p = 0.02119) and life expectancy in Asia at 2007 (p = 0.03274) were found to be significantly non-normal, and were log-transformed. Using the log-transformed data, both subsets are still non-normal, and the variance was significantly different between groups (p = 0.001069). The t-test result shows that the life expectancy in Europe at 2007 is longer that that in Asia (p = 5.105e-05).
+
+
+
+3. Wealth: Conduct the appropriate statistical test, demonstrate the underlying
+assumptions, plot the results, and briefly report the results in a ‘publishable’ format, to answer a research question of your choice phased in the following format: [5 marks]
+Does GDP (gdpPercap) increase between [2002] and [2007] in [Europe]?
+
+```{r}
+# Subsetting
+dfw <- gapminder %>%
+  filter (continent == "Europe" & (year == 2002 | year == 2007 ) )
+df2 <- gapminder %>%
+  filter (year == 2002 & continent == "Europe")
+df7 <- gapminder %>%
+  filter (year == 2007 & continent == "Europe")
+
+# log transform
+dfwt <- dfw %>% 
+  mutate(value_log = log(gdpPercap))
+df2t <- dfwt %>%
+  filter (year == 2002 & continent == "Europe")
+
+```
+
+
+```{r}
+# Check normality of GDP in Europe at 2002
+qqnorm(df2$gdpPercap)
+print(skewness(df2$gdpPercap))
+shapiro.test(x = df2$gdpPercap)
+ks.test(x = df2$gdpPercap,
+        y = "pnorm",
+        mean = mean(df2$gdpPercap),
+        sd = sd(df2$gdpPercap))
+```
+
+```{r}
+# Check normality of GDP in Europe at 2007
+qqnorm(df7$gdpPercap)
+print(skewness(df7$gdpPercap))
+shapiro.test(x = df7$gdpPercap)
+ks.test(x = df7$gdpPercap,
+        y = "pnorm",
+        mean = mean(df7$gdpPercap),
+        sd = sd(df7$gdpPercap))
+```
+
+
+```{r}
+# Check normalization again after dataset of GDP in Europe at 2002 is log-transformed
+qqnorm(df2t$value_log)
+print(skewness(df2t$value_log))
+shapiro.test(x = df2t$value_log)
+ks.test(x = df2t$value_log,
+        y = "pnorm",
+        mean = mean(df2t$value_log),
+        sd = sd(df2t$value_log))
+```
+
+```{r}
+# Dependent T-test 
+t.test(x = df2$gdpPercap,
+       y = df7$gdpPercap,
+       alternative = "two.sided",
+       paired = TRUE)
+```
+```{r}
+ggplot(dat = dfw, aes(x = year, y = gdpPercap))+
+  geom_point()
+  
+```
+A dependent t-test will be used to analyze the change of GDP in Europe from 2002 to 2007. The Kolmogorov-Smirnov test will be used to test for normality, and since this is a dependent t-test, Levene’s test for homogeneity of variance will not be appliable. If data is found to be non-normal, data will be log-transformed. Significance will be set at α < 0.05.
+
+Subject characteristics are presented as above. GDP in Europe at 2002 (p = 0.0275) was found to be significantly non-normal, and were log-transformed. Using the log-transformed data, GDP in Europe at 2002 is still non-normal (p=0.002271), the dependent t-test result shows that GDP in Europe from at 2007 is hight that that in 2002 (p=4.627e-13).
+
+
+
+
+
+
+
+
