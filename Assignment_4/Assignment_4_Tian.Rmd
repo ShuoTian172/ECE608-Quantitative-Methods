@@ -1,0 +1,128 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+
+
+
+1. Summarize the findings of the meta-analysis using the following prompts: [5 marks]
+ 
+  a. What is the purpose of the study?
+  
+  The authors metaanalyzed 225 studies that reported data on examination scores or failure rates when comparing student performance in undergraduate science, technology, engineering, and mathematics (STEM) courses under traditional lecturing versus active learning,to test the hypothesis that lecturing maximizes learning and course performance. 
+
+  b. Qualitatively describe Figure 2A.
+  
+  The overall mean effect size for performance on identical or equivalent examinations, concept inventories, and other assessments was a weighted standardized mean difference of 0.47 (Z =9.781, P << 0.001)—meaning that on average, student performance increased by just under half a SD with active learning compared with lecturing, basing on the total students number of 158.
+  
+  c. What is the primary finding of the study?
+  
+  The results raise questions about the continued use of traditional lecturing as a control in research studies, and support active learning as the preferred, empirically validated teaching practice in regular classrooms.
+  
+  d. Do a little research of your own and describe how Hedges’s g differs from
+  Cohen’s d. Why might have the researchers used Hedges’s g in their study?
+
+  Hedges’ g and Cohen’s d are extremely similar. Both have an upwards bias in results of up to about 4%. The two statistics are very similar except when sample sizes are below 20, when Hedges’ g outperforms Cohen’s d.
+
+
+2. The university is currently revising its budget and would like you to submit a few
+different study designs for your investigation. How many participants should you recruit
+for the following research questions? Assume that students do not experience both
+active learning styles and traditional styles (i.e., not a cross-over design). List both the
+anticipated effect size and estimated total sample size in your answer. (For this
+question, assume that Hedges’s g == Cohen’s d) [6 marks]
+
+a) Using the suggested overall effect size reported across the 8 STEM disciplines,
+what is the sample size needed to find effects for a comparison between active
+and traditional lecturing styles.
+
+Using the suggested overall effect size reported across the 8 STEM disciplines, the result shows as below that 73 sample size per group will be an appropriate fit.
+
+```{r}
+library(tidyverse) #For data wrangling
+library(ez)        #For ANOVA
+library(pwr)       #For power calculation
+library(pwr2)      #For 2-way ANOVA power calculation
+library(effsize)   #For effect size calculation
+
+pwr.t.test(d = 0.47,
+           n = NULL,
+           sig.level = 0.05,
+           power = 0.8,
+           type = "two.sample")
+
+```
+
+
+b) What is the sample size needed to find effects for a study design comparing
+active learning vs traditional lecturing between each of the 8 STEM disciplines,
+assuming an effect size of f=0.5 for learning style, and an effect size of f=0.2 for
+STEM discipline?
+
+The result shows as below that 23 sample size per group will be an appropriate fit, and total sample size is 368.
+
+```{r}
+ss.2way(a = 8,
+        b = 2,
+        alpha = 0.05,
+        beta = 0.20,
+        f.A = 0.2,
+        f.B = 0.5,
+        B=100)
+```
+
+
+c) Show the sample size vs power curve for Engineering, Biology, and Mathematics disciplines. 
+
+The supplyment material of the article shows the Hedges’ g value of Engineering, Biology, and Mathematics disciplines are 0.481, 0.303 and 0.340 respectively. The they were transformed to f value through the tool provided by the website--http://www.psychometrica.de/effect_size.html#transform
+
+The accordingly f values are  0.2405, 0.1515 and 0.17.
+
+# Engineering 
+
+pwr.plot(n = seq(1,200,by=1),
+         k = 2,
+         f = 0.2405,
+         alpha = 0.05) 
+        
+# Biology
+
+pwr.plot(n = seq(1,200,by=1),
+         k = 2,
+         f = 0.1515,
+         alpha = 0.05)
+
+# Mathematics
+
+pwr.plot(n = seq(1,200,by=1),
+         k = 2,
+         f = 0.17,
+         alpha = 0.05)
+
+
+What sample size looks like an appropriate fit for all disciplines? 
+
+As the three plots show that when the sample size is around 170 per group, total is 340 per displine, the power of these three discipilines will achieve a power of 0.8, which is an appropriate for all disciplines.
+
+
+3. Using the first study design (2a), write up a full sample size calculation statement that
+you would submit for a grant application. Be sure to include all pertinent information that
+goes into your decision making, as discussed in class. [3 marks]
+
+Results from Freeman et al. (2014) were used to estimate the effect size for evaluating the benefit of active learning vs traditional lecturing for undergraduate students in STEM, where an effect size of d = 0.47, alpha of 0.05 and power of 0.8 yielded a sample size of 72.03 per group. we aim to recruit 73 subjects per population, resulting in 146 participants in total.
+

@@ -1,0 +1,138 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r}
+library(tidyverse)  #Data management
+library(QuantPsyc)  #Regression standardized betas
+library(ggpubr)     #Add regression information to graphs
+# Packages for Assumption Testing
+library(Hmisc)      #rcorr function
+library(lawstat)    #runs.test for regression
+library(lmtest)     #Durbin-Watson test
+library(car)        #Variance Inflation Factor
+library(MASS)       #stepAIC function for stepwise regression (but no details)
+library(olsrr)      #Stepwise regression functions
+```
+
+
+```{r}
+## Assumption Checking for Regression
+df <- na.omit(airquality)
+
+mod2 <- lm(Ozone ~ Solar.R + Wind + Temp, data = df)
+summary(mod2)
+
+#Assumption 1: Are the dependent variables continuous? Yes
+str(df)
+
+```
+
+```{r}
+#Assumption 2: Are dependent y values independent from each other? Yes
+#Logic
+```
+
+
+```{r}
+#Assumption 3: Non-zero variance of predictors Yes
+options(scipen = 9999)
+apply(df, 2, var)
+
+```
+
+
+```{r}
+#Assumption 4: The regression model is linear in predictors? Yes
+Hmisc::rcorr(as.matrix(df), type = "pearson")
+```
+
+
+```{r}
+#Assumption 5: No perfect multicollinearity? Yes
+car::vif(mod2) #Only works for multiple variables
+
+```
+
+```{r}
+#Assumption 6: Highly influential points (Cook's distance)? As shown in Figure Residuals vs Leverage,all points stays within the extreme bounds. 
+#Assumption 7: Homoscedasticity? As shown in Figure Residuals vs Fitted, no obvious trendation exist.
+#Assumption 8: Normality of residuals? As shown in Figure Normal Q-Q, it can be recognised as narmality.
+par(mfrow = c(2,2))  #Set plotting window to a 2x2 orientation
+plot(mod2)           #Plot all regression plots
+par(mfrow = c(1,1))  #Set plotting window back to single
+# Plot1: Homoescedasticity. Are the residuals equal at every level?
+# Plot2: Normality of residuals
+# Plot3: Standardized homoscedasticity
+# Plot4: Cook's distance
+```
+
+```{r}
+#Assumption 9: Independence of residuals? Yes.
+stats::acf(mod2$residuals)         #Plot for lag function: Is there a pattern in the lag? Is it predictable?
+lawstat::runs.test(mod2$residuals) #Runs test: Do the residuals differ from a straight line?
+lmtest::dwtest(mod2)               #Durbin-Watson Test: Is there first order autocorrelation? 1.5-2.5 = normal.
+
+```
+
+
+```{r}
+#Assumption 10: The mean of residuals is zero? Yes
+mean(mod2$residuals)
+
+```
+
+
+```{r}
+#Assumption 11: X variables and residuals are uncorrelated? Yes
+
+df.res <- data.frame(df, mod2$residuals) %>% 
+  dplyr::select(-c(Month, Day))
+Hmisc::rcorr(as.matrix(df.res), type = "pearson")
+
+```
+
+
+```{r}
+#Assumption 12: The number of observations must be greater than the number of Xs? Yes.
+#Logic
+```
+
+
+
+
+Using the dataset airquality from library(datasets), investigate which of Solar.R, Wind
+and Temp are the best predictors of Ozone quality.
+
+As shown in the figures below, Temp has the hightest Std. Beta value, which indicates that it is the best predictor. When add Solar.R and Wind predictors the model is improved, this mean that these three predictors are all needed for Ozone quality predicting by stepwise, backward, forward and stepwise statistical regression.   
+
+```{r}
+#Statistical Multiple Regression (Stepwise)
+
+#https://cran.r-project.org/web/packages/olsrr/vignettes/variable_selection.html
+k <- ols_step_all_possible(mod2) #Theoretically all models
+plot(k)
+
+
+
+```
+
+```{r}
+# penter is used to see the varialbe added change the model whith p value lower than 0.3
+forward <- ols_step_forward_p(mod2, penter = 0.3, details = TRUE) #penter default is 0.3
+plot(forward)
+```
+
+
+```{r}
+backward <- ols_step_backward_p(mod2, prem = 0.5, details = TRUE) #prem default is 0.3
+plot(backward)
+
+```
+
+```{r}
+both <- ols_step_both_p(mod2, pent = 0.3, prem = 0.5, details = TRUE) #pent 0.3, prem 0.3
+plot(both)
+```
+

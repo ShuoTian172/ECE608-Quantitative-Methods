@@ -1,0 +1,293 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+```{r}
+library(tidyverse)
+library(car)
+library(ez)
+library(e1071)
+
+df <- read.csv("ECE608_A3_BloodFlow.csv")
+df1=na.omit(df)
+
+```
+1.a Conduct the appropriate t-test for the effect of sex on Flow at T0. What is the t
+value?
+```{r}
+t.test(data = df1,
+       x = df1$T0[df1$Sex == "M"],
+       y = df1$T0[df1$Sex == "F"],
+       alternative = "two.sided",
+       var.equal = TRUE,
+       paired = FALSE)
+```
+The t value is the ratio of the departure of the estimated value of a parameter from its hypothesized value to its standard error. It is used in hypothesis testing via Student's t-test. When performing a t-test, the t-value measures the size of the difference relative to the variation in sample data. 
+
+
+
+1.b Conduct a one-way ANOVA for the effect of sex on Flow at T0. What is the F
+value?
+
+The F value is a value on the F distribution. Various statistical tests generate an F value. The value can be used to determine whether the test is statistically significant.
+
+The F value is used in analysis of variance (ANOVA). It is calculated by dividing two mean squares. This calculation determines the ratio of explained variance to unexplained variance.
+
+The F distribution is a theoretical distribution. There are many of these distributions, and each of them differs based on the degrees of freedom.
+
+The F value and the degrees of freedom of the sources of variance are used to determine the probability of the F value. The probability is the significance value for the test.
+
+```{r}
+#Run the ANOVA first
+df1.ez <- ezANOVA(data = df1,
+                 dv = T0,
+                 wid = ID,
+                 between = Sex,
+                 type = 3,
+                 return_aov = TRUE)
+df1.ez
+
+```
+1.c How does your t value squared (t2) compare to your F value? In general, what
+would this signify?
+
+For this case, t value squared (t2) is equal to F value. In general, t-test is a special type of ANOVA that can be used when we have only two populations to compare their means. 
+
+
+
+
+
+2. For this question, check assumptions and make the appropriate data
+transformations: [6 marks]
+a. Run a one-way ANOVA to examine whether Flow differs by exercise condition.
+Report the ANOVA main effects in a publishable single-line summary.
+
+A significant main effect for exercise condition was found (F=2.82; P=0.047).
+
+```{r}
+
+data_long_1 <- gather(df1, timestamp, measurement, T0:T120, factor_key=TRUE)
+data_long_1
+
+#Run the ANOVA first
+df2.ez <- ezANOVA(data = data_long_1,
+                 dv = measurement,
+                 wid = ID,
+                 between = Cond,
+                 type = 3,
+                 return_aov = TRUE)
+df2.ez
+
+#Check normality of residuals
+qqnorm(df2.ez[["aov"]][["residuals"]])
+skewness(df2.ez[["aov"]][["residuals"]])
+kurtosis(df2.ez[["aov"]][["residuals"]])
+ks.test(x = df2.ez[["aov"]][["residuals"]],
+        y = "pnorm",
+        mean = mean(df2.ez[["aov"]][["residuals"]]),
+        sd = sd(df2.ez[["aov"]][["residuals"]]))
+
+#Check HoV of residuals: ezANOVA already did it for us!
+
+```
+
+2b.First, use t-tests with the Bonferroni correction method toassess main effects
+```{r}
+pairwise.t.test(x = data_long_1$measurement,
+                g = data_long_1$Cond,
+                paired = FALSE,
+                alternative = "two.sided",
+                p.adjust.method = "bonferroni") 
+```
+
+2c.Second, use the Tukey’s HSD method to assess main effects.
+```{r}
+TukeyHSD(x = df2.ez[["aov"]])#post doc 
+```
+d.Is there a discrepancy between the p-value results from the post-hoc t-tests and the results from the Tukey’s HSD? If so, why might this be?
+
+the Tukey’s HSD conserves the Type I error rate. However, a Bonferonni correction can force your alpha very small, and is seen as a test with low power. 
+
+
+3. For this question, check all assumptions, make the appropriate data
+transformations, run the analyses, summarize the main effects and posthocs in a
+publishable format, and make a publishable graph of the primary findings. [10 marks]
+a. Run a one-way ANOVA to examine whether flow changes over time.
+b. From the results, recreate the classic ANOVA table we have used in lecture
+
+A significant main effect for timecourse was found (F=7.906;
+P=5.44e-06). Post-hoc analysis revealed that group T0 was
+significantly differ from group T30, T60 and T90 (P=0.00066, P=0.02282, P=.00061).
+
+```{r}
+
+df3.ez <- ezANOVA(data = data_long_1,
+                 dv = measurement,
+                 wid = ID,
+                 within = timestamp,
+                 type = 3,
+                 return_aov = TRUE)
+df3.ez
+```
+
+
+ANOVA Table
+Source        SS           df     MS         F          p
+timestamp     24311.02     4      6077.76    7.906     5.44032e-06
+Subject Error 178339.27    232    768.7
+
+
+
+
+```{r}
+#Repeated-Measures post-hoc:
+pairwise.t.test(x = data_long_1$measurement,
+                g = data_long_1$timestamp,
+                paired = TRUE,
+                alternative = "two.sided",
+                p.adjust.method = "bonferroni") #or "holm"
+```
+
+
+```{r}
+
+#Check Assumptions (new qqPlot function)
+qqPlot(df3.ez[["aov"]][["ID:timestamp"]][["residuals"]])
+skewness(df3.ez[["aov"]][["ID:timestamp"]][["residuals"]])
+kurtosis(df3.ez[["aov"]][["ID:timestamp"]][["residuals"]])
+shapiro.test(x = df3.ez[["aov"]][["ID:timestamp"]][["residuals"]])
+
+```
+
+```{r}
+#Posthocs
+ggplot(data = data_long_1, aes(x = timestamp, y = measurement))+
+  geom_boxplot()
+```
+
+
+
+
+
+
+
+4. For this question, run the analyses, summarize the results and posthocs in a
+publishable format and make a publishable graph of the primary findings. [10 marks]
+a) Examine whether there is a difference between men and women for the timecourse of blood flow responses (i.e., after T0, T30, T60, T90, and T120) to Sprint exercise.
+b) From the results, recreate the classic ANOVA table we have used in lecture.
+
+A significant main effect for Sex was found (F=4.78;
+P=0.049). A significant main effect for timestamp was found
+(F=2.66, P=0.043). A significant Sex x timestamp interaction was
+found (F=2.82, P=0.034). Post-hoc analysis revealed that a difference between men and women for of blood flow responses to Sprint exercise in group T0 (p=0.03) and T60 (p=0.0085).
+
+
+
+```{r}
+# Factorial ANOVA: One within and one between factor
+
+data_long_2 <- data_long_1 %>%
+  filter (Cond == "Sprint") 
+
+df4.ez <- ezANOVA(data = data_long_2,
+                   dv = measurement,
+                   wid = ID,
+                   within = timestamp,
+                   between = Sex,
+                   type = 2,
+                   return_aov = TRUE)
+df4.ez
+
+```
+ANOVA Table
+Source                   SS            df    MS            F          p
+Sex                      18163.49      1     18163.49      4.78818    0.04916712
+timestamp                7386.30       4     1846.58       2.662      0.04369461
+Sex X timestamp          7849.29       4     1962.32       2.829      0.04369461
+Subject Error            45520.87      12    3793.40
+Random Error(timestamp)  33291.68      48    693.58     
+
+
+
+```{r}
+#Check Assumptions (new qqPlot function)
+qqPlot(df4.ez[["aov"]][["ID:timestamp"]][["residuals"]])
+skewness(df4.ez[["aov"]][["ID:timestamp"]][["residuals"]])
+kurtosis(df4.ez[["aov"]][["ID:timestamp"]][["residuals"]])
+shapiro.test(x = df4.ez[["aov"]][["ID:timestamp"]][["residuals"]])
+
+
+```
+
+
+```{r}
+df1.t0 <- data_long_2 %>% 
+  filter(timestamp == "T0")
+pairwise.t.test(x = df1.t0$measurement,
+                g = df1.t0$Sex,
+                paired = FALSE,
+                alternative = "two.sided",
+                p.adjust.method = "bonferroni")
+
+df1.t30 <- data_long_2 %>% 
+  filter(timestamp == "T30")
+pairwise.t.test(x = df1.t30$measurement,
+                g = df1.t30$Sex,
+                paired = FALSE,
+                alternative = "two.sided",
+                p.adjust.method = "bonferroni")
+
+df1.t60 <- data_long_2 %>% 
+  filter(timestamp == "T60")
+pairwise.t.test(x = df1.t60$measurement,
+                g = df1.t60$Sex,
+                paired = FALSE,
+                alternative = "two.sided",
+                p.adjust.method = "bonferroni")
+
+df1.t90 <- data_long_2 %>% 
+  filter(timestamp == "T90")
+pairwise.t.test(x = df1.t90$measurement,
+                g = df1.t90$Sex,
+                paired = FALSE,
+                alternative = "two.sided",
+                p.adjust.method = "bonferroni")
+
+df1.t120 <- data_long_2 %>% 
+  filter(timestamp == "T120")
+pairwise.t.test(x = df1.t120$measurement,
+                g = df1.t120$Sex,
+                paired = FALSE,
+                alternative = "two.sided",
+                p.adjust.method = "bonferroni")
+
+```
+
+```{r}
+#Posthocs
+ggplot(data = data_long_2, aes(x = timestamp, y = measurement, fill = Sex))+
+  geom_boxplot()
+```
+
+
+
+
+
+
+
+

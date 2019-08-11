@@ -1,0 +1,78 @@
+
+1. Gus T. Wind, the breathing coach, is examining the reliability of a new gas
+analyzer to measure the relative concentrations of oxygen and carbon dioxide
+during maximal exercise tests. Volunteers breathed into the same machine six
+different times and the percent oxygen was recorded. Ideally, Dr. Wind would like
+athletes to breathe only once after competitions to save time. (outcomes: gas1-
+gas6)
+    Intra-rater, Two-way Mix, Absolute Agreement Type
+    ICC(3,1), Single Measure
+
+2. Cy Kyle Fast, the cycling coach, is interested in whether any person would be
+reliable in their quickness changing a new easy-latch bike tire in case of flats. Six
+of his team members each changed 27 tires, although 2 of his assistants only
+had 1 hand due to unfortunate biking accidents, and were a bit slower than the
+others. (outcomes: tired1-tired6)
+    Inter-rater Reliability, Two- way Random, Consistency Type
+    ICC(2,27), Average Measure 
+
+3. Juan R. Em has a new device for measuring muscle power but the machine still
+needs a person to manually identify breakpoints on print outs. To measure his
+own reliability, Dr. Em examines data from 27 athletes and measures the
+breakpoints 6 different times. It is very important that he identifies the real power
+value to set training schedules for athletes, so he would plan to take the average
+of any repeated measurements. (outcomes: power1-power6)
+    Test-retest, Two-Way Mix, Absolute Agreement Type
+    ICC(3,6), Average Measures
+
+4. In addition to the reliability testing, Dr. Wind was also interested in the validity of
+his new gas analyzer and compared it to a top-of-the-line commercial model
+(outcomes: NewGas and TopGas). He produced the following Bland-Altman plot:
+a) What conclusion can you draw about the validity of the new machine? [2
+marks]
+
+As shown in the Bland-Altman plot, the new machine has the approximately equal validity to the top-of-the-line commercial model.
+
+
+b) If Dr. Wind was attempted to measure the percent oxygen within a 5 unit
+limit, would your conclusions change? Why? [1 mark]
+
+the new machine has different validity comparing with the top-of-the-line commercial model. Because most measure ponits fall out of the 5 unit limit lines.
+
+
+```{r}
+library(tidyverse)
+library(psych)
+
+df <- read.csv("A6_Reliability.csv")
+
+```
+
+```{r}
+##Bland-Altman 
+library(BlandAltmanLeh)
+
+#Create BA plot
+bland.altman.plot(group1 = df$NewGas, group2 = df$TopGas, graph.sys = "ggplot2")
+```
+
+
+c) Plot NewGas against TopGas, as well as a diagonal line representing a
+perfect r=1 relationship (i.e., the identity line). How does this plot compare
+to the Bland-Altman plot? Why might one be better than the other? [3
+marks]
+
+Bland and Altman introduced the Bland-Altman plot to describe agreement between two quantitative measurements by constructing limits of agreement. These statistical limits are calculated by using the mean and the standard deviation (s) of the differences between two measurements. The graph displays a scatter diagram of the differences plotted against the averages of the two measurements. Horizontal lines are drawn at the mean difference, and at the limits of agreement. The limits of agreement are defined as the mean difference ± 1.96 SD of differences. If these limits do not exceed the maximum allowed difference between methods Δ (the differences within mean ± 1.96 SD are not clinically important), the two methods are considered to be in agreement and may be used interchangeably. On the other hand, identity line can be useful, but not as much information as BA plot. 
+
+
+```{r}
+#Identify line plot
+ggplot(data = df, aes(x = NewGas, y = TopGas))+
+  geom_point()+
+  geom_abline(slope = 1, intercept = 0)+
+  xlim(0,60)+
+  ylim(0,60)
+```
+
+
+
