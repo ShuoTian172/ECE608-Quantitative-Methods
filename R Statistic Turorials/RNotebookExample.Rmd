@@ -1,0 +1,38 @@
+---
+title: "R Notebook Example"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+---
+
+This is an R Markdown Notebook. When you execute code within the notebook, the results appear beneath the code. For your assignments, I will expect you to submit a .Rmd file so you can have written answers to the assignment questions, with modifiable code so myself and the TA will be able to examine any errors
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+For every 'custom' package we use, we have to re-load the library into R during each new session using the library() function. First, let's simulate some data and look at simple descriptive statistics:
+
+```{r}
+library(tidyverse)
+g1 <- rnorm(n=100, mean=350, sd=20)     #Creates a random sample with mean 350 and SD 20
+g2 <- rnorm(n=100, mean=280, sd=8)      #Creates a random sample with mean 280 and SD 8
+df <- data.frame(g1,g2) %>%             #Creates a 'wide' format data.frame, then uses the Tidyverse Pipeline to call next function
+  gather(key="group",value="value")     #Converts into a 'long' format data.frame
+
+```
+
+Nothing happened? That's because none of the commands told R to print any data. We can tell it to show us some numbers by using the handy tapply function from Tidyverse. This applies a function for a specific variable, in certain conditions. In this example, we want to see the summary statistics of our value for each group:
+
+```{r}
+tapply(df$value, df$group, summary)
+
+```
+
+These statistics show us basic information about our data, like the interquartile range, mean, min and max. I prefer to see the visual representation of the data, so let's take a look at the histogram of the data we've generated:
+
+```{r}
+ggplot(dat=df, aes(x=value,fill=group)) +
+  geom_histogram(binwidth=10,alpha=0.5,position="identity")
+```
+
+And that's it! For each component of your assignments, try to describe what you will do, then add the R functions underneath.

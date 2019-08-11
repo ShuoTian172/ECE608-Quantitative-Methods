@@ -1,0 +1,45 @@
+---
+title: "Monty Hall Problem"
+output: html_notebook
+---
+
+The basic scenario: You are on the 'Monty-Hall' game show! In this unique challenge, you are presented three doors:
+
+```{r}
+#Create a vector for doors A, B, and C
+
+```
+
+Behind the doors are two goats, and a BRAND NeW CAR! This is a game of luck to pick the car, and with 1/3 odds, its a pretty good one! Let's randomly pick a door that the car is hiding behind
+
+```{r}
+#From the door vector, sample a random door to be equal to 'prize'
+
+```
+
+Now you pick a random door (because, remember, it's all due to luck)
+
+```{r}
+#From the door vector, sample a random door as your 'pick'
+
+```
+
+Great! You have a 1/3 chance of winning the car. Now comes the interesting part. The gameshow host DOES know where the car is and tries to help you out. Of the doors you did not pick, he reveals one door with a goat.
+
+```{r}
+#From the door vector, sample a random door (called 'opened') that is neither the prize, nor the one you picked.
+
+```
+
+You are now given the opportunity to switch doors if you wish. Do you take the chance? Does it matter? Some people's logic might dictate that you now have a 50/50 chance of finding the goat since you are choosing between two doors. Is that true? We can find out the exact odds by running a simulation:
+
+```{r}
+#For this simulation, let's assume you always switch doors at this point. Use a for-loop to iterate 100 attempts at the switch
+
+```
+
+Now print the count of switchwin and switch lose to see what the real odds of winning were:
+
+```{r}
+#Print the length of doorans for either switchwin or switch lose
+```
