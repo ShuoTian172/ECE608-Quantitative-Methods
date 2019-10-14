@@ -1,11 +1,11 @@
 # Quantitative-Methods
 
-Topics:
+## Topics:
 
 
-Introduction, Research Design and Methodology, Introduction to R
+- Introduction, Research Design and Methodology, Introduction to R
 
-R data wrangling, Data Visualization, and Basic Probability
+- R data wrangling, Data Visualization, and Basic Probability
 
 Simple Inferential Statistics: T-tests and parametric assumptions
 
