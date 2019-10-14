@@ -7,20 +7,20 @@
 
 - R data wrangling, Data Visualization, and Basic Probability
 
-Simple Inferential Statistics: T-tests and parametric assumptions
+- Simple Inferential Statistics: T-tests and parametric assumptions
 
-Analysis of Variance and post-hoc procedures
+- Analysis of Variance and post-hoc procedures
 
-Factorial ANOVAs
+- Factorial ANOVAs
 
-Effect sizes, power, and sample size calculations
+- Effect sizes, power, and sample size calculations
 
-Simple Regression and Multiple Regression
+- Simple Regression and Multiple Regression
 
-Logistic Regression and Poisson Regression
+- Logistic Regression and Poisson Regression
 
-Validity and Reliability
+- Validity and Reliability
 
-Concepts in non-parametric testing and Bayesian statistics + Review
+- Concepts in non-parametric testing and Bayesian statistics + Review
 
-Error and Receiver-Operator Curves
+- Error and Receiver-Operator Curves
